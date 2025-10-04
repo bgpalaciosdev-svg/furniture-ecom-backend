@@ -152,7 +152,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Server is running!");
+  res.send("Server is running v1!");
 });
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
