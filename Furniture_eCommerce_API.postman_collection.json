@@ -775,9 +775,10 @@
     },
     {
       "name": "🚚 Delivery",
+      "description": "LA-only delivery. Free delivery: Order ≥$1000 AND distance <10 miles. Pricing: 0-5mi=$25, 5-10mi=$50, 10+mi=$100",
       "item": [
         {
-          "name": "Validate Address",
+          "name": "Validate Address - Downtown LA (Valid)",
           "request": {
             "method": "POST",
             "header": [
@@ -788,7 +789,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"USA\"\n  }\n}"
+              "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/delivery/validate-address",
@@ -798,13 +799,13 @@
           },
           "response": [
             {
-              "name": "Address Validation Response",
+              "name": "Valid LA Address",
               "originalRequest": {
                 "method": "POST",
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"USA\"\n  }\n}"
+                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  }\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/api/delivery/validate-address",
@@ -817,12 +818,12 @@
               "_postman_previewlanguage": "json",
               "header": [],
               "cookie": [],
-              "body": "{\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"is_valid\": true,\n  \"is_in_zone\": true,\n  \"distance_miles\": 12.5\n}"
+              "body": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\",\n    \"country\": \"United States\"\n  },\n  \"is_valid\": true,\n  \"is_in_zone\": true,\n  \"distance_miles\": 2.3,\n  \"message\": \"Address is valid and within delivery zone\"\n}"
             }
           ]
         },
         {
-          "name": "Calculate Delivery Cost",
+          "name": "Validate Address - Outside LA (Invalid)",
           "request": {
             "method": "POST",
             "header": [
@@ -833,14 +834,398 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"order_total\": 1599.98\n}"
+              "raw": "{\n  \"address\": {\n    \"street\": \"123 Market Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip_code\": \"94102\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/validate-address",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "validate-address"]
+            }
+          },
+          "response": [
+            {
+              "name": "Outside LA Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Market Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip_code\": \"94102\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/validate-address",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "validate-address"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"123 Market Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip_code\": \"94102\",\n    \"country\": \"United States\"\n  },\n  \"is_valid\": true,\n  \"is_in_zone\": false,\n  \"distance_miles\": 0,\n  \"message\": \"Delivery is only available in Los Angeles, CA\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Free Delivery (Close, High Order)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  },\n  \"order_total\": 1200\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/delivery/calculate-cost",
               "host": ["{{baseUrl}}"],
               "path": ["api", "delivery", "calculate-cost"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Free Delivery Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  },\n  \"order_total\": 1200\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 1200,\n  \"distance_miles\": 2.3,\n  \"delivery_cost\": 0,\n  \"is_free\": true,\n  \"reason\": \"Free delivery for orders over $1,000\",\n  \"tier\": \"0-5 miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Paid Delivery ($25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  },\n  \"order_total\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Paid Delivery $25",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\"\n  },\n  \"order_total\": 500\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90012\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 500,\n  \"distance_miles\": 2.3,\n  \"delivery_cost\": 25,\n  \"is_free\": false,\n  \"reason\": \"Delivery cost $25 for 0-5 miles distance. Add $500.00 more to qualify for free delivery.\",\n  \"tier\": \"0-5 miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Free Far Range ($50 saved!)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\"\n  },\n  \"order_total\": 1500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Free Delivery Far Range",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\"\n  },\n  \"order_total\": 1500\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 1500,\n  \"distance_miles\": 7.5,\n  \"delivery_cost\": 0,\n  \"is_free\": true,\n  \"reason\": \"Free delivery for orders over $1,000 within 5-10 miles\",\n  \"tier\": \"5-10 miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Paid Far Range ($50)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\"\n  },\n  \"order_total\": 800\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Paid Delivery $50",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\"\n  },\n  \"order_total\": 800\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"789 Sunset Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90028\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 800,\n  \"distance_miles\": 6.2,\n  \"delivery_cost\": 50,\n  \"is_free\": false,\n  \"reason\": \"Delivery cost $50 for 5-10 miles distance. Add $200.00 more to qualify for free delivery.\",\n  \"tier\": \"5-10 miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Far Range ($100) High Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\"\n  },\n  \"order_total\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Far Range - Still Paid $100",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\"\n  },\n  \"order_total\": 2000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 2000,\n  \"distance_miles\": 18.2,\n  \"delivery_cost\": 100,\n  \"is_free\": false,\n  \"reason\": \"Delivery cost $100 for 10+ miles distance within Los Angeles.\",\n  \"tier\": \"10+ miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Far Range ($100) Low Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"8500 Van Nuys Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"91331\"\n  },\n  \"order_total\": 600\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Far Range - Paid $100",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"8500 Van Nuys Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"91331\"\n  },\n  \"order_total\": 600\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"8500 Van Nuys Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"91331\",\n    \"country\": \"United States\"\n  },\n  \"order_total\": 600,\n  \"distance_miles\": 16.5,\n  \"delivery_cost\": 100,\n  \"is_free\": false,\n  \"reason\": \"Delivery cost $100 for 10+ miles distance within Los Angeles.\",\n  \"tier\": \"10+ miles\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Validate Address - Far Range (San Pedro)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/validate-address",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "validate-address"]
+            }
+          },
+          "response": [
+            {
+              "name": "Valid LA Address - Far",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/validate-address",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "validate-address"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"address\": {\n    \"street\": \"1000 Harbor Blvd\",\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\",\n    \"zip_code\": \"90731\",\n    \"country\": \"United States\"\n  },\n  \"is_valid\": true,\n  \"is_in_zone\": true,\n  \"distance_miles\": 18.2\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Cost - Error (Outside Zone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"123 Market Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip_code\": \"94102\"\n  },\n  \"order_total\": 1200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery", "calculate-cost"]
+            }
+          },
+          "response": [
+            {
+              "name": "Error - Invalid Address",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"address\": {\n    \"street\": \"123 Market Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip_code\": \"94102\"\n  },\n  \"order_total\": 1200\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/delivery/calculate-cost",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "delivery", "calculate-cost"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"error\": \"INVALID_ADDRESS\",\n  \"message\": \"Delivery is only available in Los Angeles, CA\"\n}"
+            }
+          ]
         }
       ]
     },
