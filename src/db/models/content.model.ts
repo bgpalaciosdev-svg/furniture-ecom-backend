@@ -42,6 +42,10 @@ const BannerSchema = new Schema<IBanner>(
 // Sale Section Schema
 const SaleSectionSchema = new Schema<ISaleSection>(
   {
+    image_url: {
+      type: String,
+      required: false,
+    },
     title: {
       type: String,
       required: true,

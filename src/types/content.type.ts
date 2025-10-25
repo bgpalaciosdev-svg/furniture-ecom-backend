@@ -11,6 +11,7 @@ export interface IBanner {
 
 export interface ISaleSection {
   _id?: string;
+  image_url?: string;
   title: string;
   description: string;
   discount_text: string;

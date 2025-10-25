@@ -66,13 +66,14 @@ export const getSaleSection = async (
 ): Promise<void> => {
   try {
     const saleSection = await SaleSection.findOne({ active: true }).populate('products');
-    
+
     if (!saleSection) {
       res.status(404).json({ message: "No active sale section found" });
       return;
     }
 
     res.status(200).json({
+      image_url: saleSection.image_url,
       title: saleSection.title,
       description: saleSection.description,
       discount_text: saleSection.discount_text,
@@ -89,11 +90,12 @@ export const updateSaleSection = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { title, description, discount_text, products } = req.body;
+    const { image_url, title, description, discount_text, products } = req.body;
 
     const saleSection = await SaleSection.findOneAndUpdate(
       { active: true },
       {
+        image_url,
         title,
         description,
         discount_text,
@@ -104,6 +106,7 @@ export const updateSaleSection = async (
     ).populate('products');
 
     res.status(200).json({
+      image_url: saleSection.image_url,
       title: saleSection.title,
       description: saleSection.description,
       discount_text: saleSection.discount_text,
