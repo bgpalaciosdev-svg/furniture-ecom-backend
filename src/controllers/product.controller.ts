@@ -206,7 +206,7 @@ export const updateProduct = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, sku, category, price, description, variants, images } =
+    const { name, sku, category, price, description, variants, images, featured, stock } =
       req.body;
 
     const product = await Product.findByIdAndUpdate(
@@ -219,13 +219,14 @@ export const updateProduct = async (
         description,
         variants,
         images,
-        stock: variants
+        featured,
+        stock: stock !== undefined ? stock : (variants
           ? variants.reduce(
               (total: number, variant: IProductVariant) =>
                 total + (variant.stock || 0),
               0
             )
-          : 0,
+          : 0),
       },
       { new: true }
     ).populate("category_id");
@@ -241,8 +242,11 @@ export const updateProduct = async (
       sku: product.sku,
       category: product.category_id,
       price: product.price,
+      description: product.description,
       variants: product.variants,
       images: product.images,
+      featured: product.featured,
+      stock: product.stock,
     });
   } catch (error) {
     next(error);
