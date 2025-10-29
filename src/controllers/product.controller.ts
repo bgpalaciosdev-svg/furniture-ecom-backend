@@ -164,6 +164,16 @@ export const createProduct = async (
     const { name, sku, category, price, description, variants, images } =
       req.body;
 
+    // Check if SKU already exists
+    const existingProduct = await Product.findOne({ sku: sku });
+    if (existingProduct) {
+      res.status(400).json({
+        success: false,
+        message: `A product with SKU '${sku}' already exists. Please use a unique SKU.`
+      });
+      return;
+    }
+
     const product = new Product({
       name,
       sku,
@@ -208,6 +218,19 @@ export const updateProduct = async (
     const { id } = req.params;
     const { name, sku, category, price, description, variants, images, featured, stock } =
       req.body;
+
+    // Check if SKU already exists on another product
+    const existingProduct = await Product.findOne({
+      sku: sku,
+      _id: { $ne: id }
+    });
+    if (existingProduct) {
+      res.status(400).json({
+        success: false,
+        message: `Another product with SKU '${sku}' already exists. Please use a unique SKU.`
+      });
+      return;
+    }
 
     const product = await Product.findByIdAndUpdate(
       id,
