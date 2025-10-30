@@ -22,7 +22,12 @@
   - Set proper response headers for Excel file download
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 3. Add export route to admin router
+- [x] 3. Add export route to admin router
+
+
+
+
+
   - Add GET /products/export route to admin.router.ts
   - Wire the route to the exportProductsToExcel controller method
   - _Requirements: 1.1_
