@@ -121,33 +121,47 @@ export const exportProductsToExcel = async (
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Products');
 
-    // Define columns
+    // Define columns with proper headers and widths
     worksheet.columns = [
-      { header: 'Name', key: 'name', width: 30 },
-      { header: 'SKU', key: 'sku', width: 15 },
-      { header: 'Category', key: 'category', width: 20 },
-      { header: 'Price', key: 'price', width: 12 },
-      { header: 'Stock', key: 'stock', width: 10 },
+      { header: 'Product Name', key: 'name', width: 35 },
+      { header: 'SKU', key: 'sku', width: 18 },
+      { header: 'Category', key: 'category', width: 22 },
+      { header: 'Price ($)', key: 'price', width: 15 },
+      { header: 'Stock Quantity', key: 'stock', width: 15 },
       { header: 'Status', key: 'status', width: 12 },
-      { header: 'Created Date', key: 'created_at', width: 18 },
-      { header: 'Updated Date', key: 'updated_at', width: 18 }
+      { header: 'Created Date', key: 'created_at', width: 20 },
+      { header: 'Updated Date', key: 'updated_at', width: 20 }
     ];
 
-    // Style the header row
+    // Style the header row with enhanced formatting
     const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true };
+    headerRow.font = { 
+      bold: true, 
+      size: 12,
+      color: { argb: 'FF000000' }
+    };
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
+      fgColor: { argb: 'FFD3D3D3' }
+    };
+    headerRow.alignment = { 
+      vertical: 'middle', 
+      horizontal: 'center' 
+    };
+    headerRow.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
     };
 
-    // Add product data to worksheet
-    products.forEach((product: any) => {
+    // Add product data to worksheet with proper formatting
+    products.forEach((product: any, index: number) => {
       const status = product.stock > 0 ? 'Active' : 'Inactive';
       const categoryName = product.category_id?.name || 'Uncategorized';
       
-      worksheet.addRow({
+      const row = worksheet.addRow({
         name: product.name,
         sku: product.sku,
         category: categoryName,
@@ -157,17 +171,56 @@ export const exportProductsToExcel = async (
         created_at: product.created_at,
         updated_at: product.updated_at
       });
+
+      // Apply alternating row colors for better readability
+      if (index % 2 === 1) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF8F8F8' }
+        };
+      }
+
+      // Center align numeric and status columns
+      row.getCell('stock').alignment = { horizontal: 'center' };
+      row.getCell('status').alignment = { horizontal: 'center' };
+      row.getCell('price').alignment = { horizontal: 'right' };
     });
 
-    // Format price column as currency
+    // Format price column as currency with proper alignment
     const priceColumn = worksheet.getColumn('price');
     priceColumn.numFmt = '$#,##0.00';
+    priceColumn.alignment = { horizontal: 'right' };
 
-    // Format date columns
+    // Format stock column with center alignment
+    const stockColumn = worksheet.getColumn('stock');
+    stockColumn.alignment = { horizontal: 'center' };
+
+    // Format status column with center alignment
+    const statusColumn = worksheet.getColumn('status');
+    statusColumn.alignment = { horizontal: 'center' };
+
+    // Format date columns with proper date format
     const createdColumn = worksheet.getColumn('created_at');
     const updatedColumn = worksheet.getColumn('updated_at');
-    createdColumn.numFmt = 'mm/dd/yyyy hh:mm';
-    updatedColumn.numFmt = 'mm/dd/yyyy hh:mm';
+    createdColumn.numFmt = 'mm/dd/yyyy hh:mm AM/PM';
+    updatedColumn.numFmt = 'mm/dd/yyyy hh:mm AM/PM';
+    createdColumn.alignment = { horizontal: 'center' };
+    updatedColumn.alignment = { horizontal: 'center' };
+
+    // Add borders to all data cells for better structure
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) { // Skip header row as it already has borders
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
 
     // Set response headers for Excel file download
     res.setHeader(
