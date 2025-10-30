@@ -123,6 +123,7 @@ export const exportProductsToExcel = async (
 
     // Define columns with proper headers and widths
     worksheet.columns = [
+      { header: 'Image URL', key: 'image_url', width: 50 },
       { header: 'Product Name', key: 'name', width: 35 },
       { header: 'SKU', key: 'sku', width: 18 },
       { header: 'Category', key: 'category', width: 22 },
@@ -135,8 +136,8 @@ export const exportProductsToExcel = async (
 
     // Style the header row with enhanced formatting
     const headerRow = worksheet.getRow(1);
-    headerRow.font = { 
-      bold: true, 
+    headerRow.font = {
+      bold: true,
       size: 12,
       color: { argb: 'FF000000' }
     };
@@ -145,9 +146,9 @@ export const exportProductsToExcel = async (
       pattern: 'solid',
       fgColor: { argb: 'FFD3D3D3' }
     };
-    headerRow.alignment = { 
-      vertical: 'middle', 
-      horizontal: 'center' 
+    headerRow.alignment = {
+      vertical: 'middle',
+      horizontal: 'center'
     };
     headerRow.border = {
       top: { style: 'thin' },
@@ -160,7 +161,20 @@ export const exportProductsToExcel = async (
     products.forEach((product: any, index: number) => {
       const status = product.stock > 0 ? 'Active' : 'Inactive';
       const categoryName = product.category_id?.name || 'Uncategorized';
-      
+
+      // Get primary image URL or first image URL, or "No Image" if none exist
+      let imageUrl = 'No Image';
+      if (product.images && product.images.length > 0) {
+        // Look for primary image first
+        const primaryImage = product.images.find((img: any) => img.is_primary);
+        if (primaryImage) {
+          imageUrl = primaryImage.url;
+        } else {
+          // Use first image if no primary is set
+          imageUrl = product.images[0].url;
+        }
+      }
+
       const row = worksheet.addRow({
         name: product.name,
         sku: product.sku,
@@ -168,6 +182,7 @@ export const exportProductsToExcel = async (
         price: product.price,
         stock: product.stock,
         status: status,
+        image_url: imageUrl,
         created_at: product.created_at,
         updated_at: product.updated_at
       });
@@ -199,6 +214,10 @@ export const exportProductsToExcel = async (
     // Format status column with center alignment
     const statusColumn = worksheet.getColumn('status');
     statusColumn.alignment = { horizontal: 'center' };
+
+    // Format image URL column with left alignment for better readability
+    const imageColumn = worksheet.getColumn('image_url');
+    imageColumn.alignment = { horizontal: 'left' };
 
     // Format date columns with proper date format
     const createdColumn = worksheet.getColumn('created_at');

@@ -44,7 +44,19 @@
   - Set appropriate column widths for readability
   - _Requirements: 1.2, 1.4_
 
-- [ ]* 5. Add error handling and validation
+- [x] 5. Add product image URL column to Excel export
+
+
+
+
+
+  - Add "Image URL" column to the Excel worksheet
+  - Include product image URLs in the exported data
+  - Format image URL column with appropriate width
+  - Handle products without images (display "No Image" or empty cell)
+  - _Requirements: 1.2_
+
+- [ ]* 6. Add error handling and validation
   - Handle database connection errors
   - Handle empty product datasets
   - Add proper error responses for failed exports
