@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Order from "../db/models/order.model";
 import Product from "../db/models/product.model";
 import User from "../db/models/user.model";
+import ExcelJS from "exceljs";
 
 // Get admin dashboard statistics
 export const getDashboard = async (
@@ -99,6 +100,88 @@ export const getDashboard = async (
         items_count: order.items.length
       }))
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Export products to Excel
+export const exportProductsToExcel = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    // Fetch all products with category information
+    const products = await Product.find()
+      .populate('category_id', 'name')
+      .sort({ created_at: -1 });
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Products');
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 30 },
+      { header: 'SKU', key: 'sku', width: 15 },
+      { header: 'Category', key: 'category', width: 20 },
+      { header: 'Price', key: 'price', width: 12 },
+      { header: 'Stock', key: 'stock', width: 10 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Created Date', key: 'created_at', width: 18 },
+      { header: 'Updated Date', key: 'updated_at', width: 18 }
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Add product data to worksheet
+    products.forEach((product: any) => {
+      const status = product.stock > 0 ? 'Active' : 'Inactive';
+      const categoryName = product.category_id?.name || 'Uncategorized';
+      
+      worksheet.addRow({
+        name: product.name,
+        sku: product.sku,
+        category: categoryName,
+        price: product.price,
+        stock: product.stock,
+        status: status,
+        created_at: product.created_at,
+        updated_at: product.updated_at
+      });
+    });
+
+    // Format price column as currency
+    const priceColumn = worksheet.getColumn('price');
+    priceColumn.numFmt = '$#,##0.00';
+
+    // Format date columns
+    const createdColumn = worksheet.getColumn('created_at');
+    const updatedColumn = worksheet.getColumn('updated_at');
+    createdColumn.numFmt = 'mm/dd/yyyy hh:mm';
+    updatedColumn.numFmt = 'mm/dd/yyyy hh:mm';
+
+    // Set response headers for Excel file download
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="products.xlsx"'
+    );
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (error) {
     next(error);
   }

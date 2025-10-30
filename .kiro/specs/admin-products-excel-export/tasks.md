@@ -10,7 +10,12 @@
   - Install the package using npm
   - _Requirements: 1.1_
 
-- [ ] 2. Create Excel export controller method
+- [x] 2. Create Excel export controller method
+
+
+
+
+
   - Add exportProductsToExcel method to admin.controller.ts
   - Implement product data fetching from database
   - Generate Excel workbook with product data using ExcelJS
