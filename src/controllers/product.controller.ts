@@ -161,7 +161,7 @@ export const createProduct = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, sku, category, price, description, variants, images } =
+    const { name, sku, category, price, description, variants, images, stock } =
       req.body;
 
     // Check if SKU already exists
@@ -182,13 +182,13 @@ export const createProduct = async (
       description,
       variants: variants || [],
       images: images || [],
-      stock: variants
+      stock: variants && variants.length > 0
         ? variants.reduce(
             (total: number, variant: IProductVariant) =>
               total + (variant.stock || 0),
             0
           )
-        : 0,
+        : (stock || 0),
     });
 
     await product.save();
@@ -243,13 +243,15 @@ export const updateProduct = async (
         variants,
         images,
         featured,
-        stock: stock !== undefined ? stock : (variants
-          ? variants.reduce(
-              (total: number, variant: IProductVariant) =>
-                total + (variant.stock || 0),
-              0
-            )
-          : 0),
+        stock: stock !== undefined 
+          ? stock 
+          : (variants && variants.length > 0
+              ? variants.reduce(
+                  (total: number, variant: IProductVariant) =>
+                    total + (variant.stock || 0),
+                  0
+                )
+              : 0),
       },
       { new: true }
     ).populate("category_id");
