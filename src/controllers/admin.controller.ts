@@ -105,6 +105,170 @@ export const getDashboard = async (
   }
 };
 
+// Export orders to Excel
+export const exportOrdersToExcel = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    // Fetch all orders with populated customer and product information
+    const orders = await Order.find()
+      .populate('customer_id', 'first_name last_name email phone')
+      .populate('items.product_id', 'name')
+      .sort({ created_at: -1 });
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Orders');
+
+    // Define columns with proper headers and widths
+    worksheet.columns = [
+      { header: 'Order Number', key: 'orderNumber', width: 18 },
+      { header: 'Customer Email', key: 'customerEmail', width: 30 },
+      { header: 'Customer Phone', key: 'customerPhone', width: 18 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Payment Method', key: 'paymentMethod', width: 18 },
+      { header: 'Payment Status', key: 'paymentStatus', width: 18 },
+      { header: 'Items Summary', key: 'itemsSummary', width: 50 },
+      { header: 'Subtotal', key: 'subtotal', width: 15 },
+      { header: 'Delivery Cost', key: 'deliveryCost', width: 15 },
+      { header: 'Total', key: 'total', width: 15 },
+      { header: 'Shipping Address', key: 'shippingAddress', width: 60 },
+      { header: 'Created Date', key: 'createdAt', width: 20 },
+      { header: 'Updated Date', key: 'updatedAt', width: 20 }
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = {
+      bold: true,
+      size: 12,
+      color: { argb: 'FF000000' }
+    };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' }
+    };
+    headerRow.alignment = {
+      vertical: 'middle',
+      horizontal: 'center'
+    };
+    headerRow.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+
+    // Add order data to worksheet
+    orders.forEach((order: any, index: number) => {
+      // Generate order number from order ID (last 6 characters)
+      const orderNumber = `ORD-${order._id.toString().slice(-6).toUpperCase()}`;
+      
+      // Get customer information
+      const customerEmail = order.customer_email || order.customer_id?.email || 'Guest Customer';
+      const customerPhone = order.customer_phone || order.customer_id?.phone || 'N/A';
+      
+      // Create items summary
+      const itemsSummary = order.items.map((item: any) => {
+        const productName = item.product_id?.name || item.name || 'Unknown Product';
+        return `${productName} (${item.quantity}x)`;
+      }).join(', ');
+      
+      // Format shipping address
+      const addr = order.shipping_address;
+      const shippingAddress = `${addr.street}, ${addr.city}, ${addr.state} ${addr.zip_code}, ${addr.country}`;
+
+      const row = worksheet.addRow({
+        orderNumber,
+        customerEmail,
+        customerPhone,
+        status: order.status,
+        paymentMethod: order.payment_method,
+        paymentStatus: order.payment_status,
+        itemsSummary,
+        subtotal: order.subtotal,
+        deliveryCost: order.delivery_cost,
+        total: order.total,
+        shippingAddress,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at
+      });
+
+      // Apply alternating row colors
+      if (index % 2 === 1) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF8F8F8' }
+        };
+      }
+
+      // Center align status columns
+      row.getCell('status').alignment = { horizontal: 'center' };
+      row.getCell('paymentStatus').alignment = { horizontal: 'center' };
+      
+      // Right align monetary values
+      row.getCell('subtotal').alignment = { horizontal: 'right' };
+      row.getCell('deliveryCost').alignment = { horizontal: 'right' };
+      row.getCell('total').alignment = { horizontal: 'right' };
+    });
+
+    // Format monetary columns as currency
+    const subtotalColumn = worksheet.getColumn('subtotal');
+    const deliveryCostColumn = worksheet.getColumn('deliveryCost');
+    const totalColumn = worksheet.getColumn('total');
+    
+    subtotalColumn.numFmt = '$#,##0.00';
+    deliveryCostColumn.numFmt = '$#,##0.00';
+    totalColumn.numFmt = '$#,##0.00';
+    
+    subtotalColumn.alignment = { horizontal: 'right' };
+    deliveryCostColumn.alignment = { horizontal: 'right' };
+    totalColumn.alignment = { horizontal: 'right' };
+
+    // Format date columns
+    const createdColumn = worksheet.getColumn('createdAt');
+    const updatedColumn = worksheet.getColumn('updatedAt');
+    createdColumn.numFmt = 'mm/dd/yyyy hh:mm AM/PM';
+    updatedColumn.numFmt = 'mm/dd/yyyy hh:mm AM/PM';
+    createdColumn.alignment = { horizontal: 'center' };
+    updatedColumn.alignment = { horizontal: 'center' };
+
+    // Add borders to all data cells
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
+
+    // Set response headers for Excel file download
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="orders.xlsx"'
+    );
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Export products to Excel
 export const exportProductsToExcel = async (
   req: Request,
