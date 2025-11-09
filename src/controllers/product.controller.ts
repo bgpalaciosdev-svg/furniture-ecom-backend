@@ -7,7 +7,7 @@ import { IProductFilterQuery, IProductVariant } from "../types/product.type";
 export const getProducts = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const {
@@ -30,7 +30,10 @@ export const getProducts = async (
 
     if (category) {
       // Handle both single category and multiple categories (comma-separated)
-      const categories = (category as string).split(',').map(cat => cat.trim()).filter(Boolean);
+      const categories = (category as string)
+        .split(",")
+        .map((cat) => cat.trim())
+        .filter(Boolean);
       if (categories.length === 1) {
         filterQuery.category_id = categories[0];
       } else if (categories.length > 1) {
@@ -78,20 +81,9 @@ export const getProducts = async (
     // Get available filter options
     const allProducts = await Product.find(filterQuery);
     const filters_available = {
-      colors: [
-        ...new Set(
-          allProducts
-            .flatMap((p) => p.variants.map((v) => v.color))
-            .filter(Boolean)
-        ),
-      ],
-      materials: [
-        ...new Set(
-          allProducts
-            .flatMap((p) => p.variants.map((v) => v.material))
-            .filter(Boolean)
-        ),
-      ],
+      // Return empty arrays for colors and materials (UI hidden)
+      colors: [],
+      materials: [],
       price_range: {
         min: Math.min(...allProducts.map((p) => p.price)),
         max: Math.max(...allProducts.map((p) => p.price)),
@@ -100,7 +92,7 @@ export const getProducts = async (
         id: cat._id,
         name: cat.name,
         count: allProducts.filter(
-          (p) => p.category_id.toString() === cat._id?.toString()
+          (p) => p.category_id.toString() === cat._id?.toString(),
         ).length,
       })),
     };
@@ -127,7 +119,7 @@ export const getProducts = async (
 export const getProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -145,7 +137,7 @@ export const getProduct = async (
         category: product.category_id,
         stock: product.variants.reduce(
           (total, variant) => total + variant.stock,
-          0
+          0,
         ),
       },
     });
@@ -158,7 +150,7 @@ export const getProduct = async (
 export const createProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { name, sku, category, price, description, variants, images, stock } =
@@ -169,7 +161,7 @@ export const createProduct = async (
     if (existingProduct) {
       res.status(400).json({
         success: false,
-        message: `A product with SKU '${sku}' already exists. Please use a unique SKU.`
+        message: `A product with SKU '${sku}' already exists. Please use a unique SKU.`,
       });
       return;
     }
@@ -182,13 +174,14 @@ export const createProduct = async (
       description,
       variants: variants || [],
       images: images || [],
-      stock: variants && variants.length > 0
-        ? variants.reduce(
-            (total: number, variant: IProductVariant) =>
-              total + (variant.stock || 0),
-            0
-          )
-        : (stock || 0),
+      stock:
+        variants && variants.length > 0
+          ? variants.reduce(
+              (total: number, variant: IProductVariant) =>
+                total + (variant.stock || 0),
+              0,
+            )
+          : stock || 0,
     });
 
     await product.save();
@@ -212,22 +205,31 @@ export const createProduct = async (
 export const updateProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, sku, category, price, description, variants, images, featured, stock } =
-      req.body;
+    const {
+      name,
+      sku,
+      category,
+      price,
+      description,
+      variants,
+      images,
+      featured,
+      stock,
+    } = req.body;
 
     // Check if SKU already exists on another product
     const existingProduct = await Product.findOne({
       sku: sku,
-      _id: { $ne: id }
+      _id: { $ne: id },
     });
     if (existingProduct) {
       res.status(400).json({
         success: false,
-        message: `Another product with SKU '${sku}' already exists. Please use a unique SKU.`
+        message: `Another product with SKU '${sku}' already exists. Please use a unique SKU.`,
       });
       return;
     }
@@ -243,17 +245,18 @@ export const updateProduct = async (
         variants,
         images,
         featured,
-        stock: stock !== undefined 
-          ? stock 
-          : (variants && variants.length > 0
+        stock:
+          stock !== undefined
+            ? stock
+            : variants && variants.length > 0
               ? variants.reduce(
                   (total: number, variant: IProductVariant) =>
                     total + (variant.stock || 0),
-                  0
+                  0,
                 )
-              : 0),
+              : 0,
       },
-      { new: true }
+      { new: true },
     ).populate("category_id");
 
     if (!product) {
@@ -282,7 +285,7 @@ export const updateProduct = async (
 export const deleteProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -304,7 +307,7 @@ export const deleteProduct = async (
 export const searchProducts = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { q, category, filters } = req.query;
@@ -321,7 +324,10 @@ export const searchProducts = async (
 
     if (category) {
       // Handle both single category and multiple categories (comma-separated)
-      const categories = (category as string).split(',').map(cat => cat.trim()).filter(Boolean);
+      const categories = (category as string)
+        .split(",")
+        .map((cat) => cat.trim())
+        .filter(Boolean);
       if (categories.length === 1) {
         searchQuery.category_id = categories[0];
       } else if (categories.length > 1) {
@@ -362,7 +368,7 @@ export const searchProducts = async (
 export const getProductStock = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -380,7 +386,7 @@ export const getProductStock = async (
         location: "Main Warehouse",
         stock: product.variants.reduce(
           (total, variant) => total + variant.stock,
-          0
+          0,
         ),
         more_arriving: false,
       },
@@ -396,7 +402,7 @@ export const getProductStock = async (
 export const updateProductStock = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { id } = req.params;
