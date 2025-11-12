@@ -6,6 +6,7 @@ export interface IProductVariant {
   price: number;
   stock: number;
   sku: string;
+  images?: IProductImage[];
 }
 
 export interface IProductImage {
