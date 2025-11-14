@@ -33,6 +33,10 @@ const ProductVariantSchema = new Schema({
     type: String,
     required: false,
   },
+  attribute: {
+    type: String,
+    required: false,
+  },
   price: {
     type: Number,
     required: true,
@@ -76,6 +80,10 @@ const ProductSchema = new Schema<IProduct>(
       required: true,
     },
     description: {
+      type: String,
+      required: false,
+    },
+    variation: {
       type: String,
       required: false,
     },

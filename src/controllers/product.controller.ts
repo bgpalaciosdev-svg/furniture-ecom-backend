@@ -153,8 +153,17 @@ export const createProduct = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { name, sku, category, price, description, variants, images, stock } =
-      req.body;
+    const {
+      name,
+      sku,
+      category,
+      price,
+      description,
+      variation,
+      variants,
+      images,
+      stock,
+    } = req.body;
 
     // Check if SKU already exists
     const existingProduct = await Product.findOne({ sku: sku });
@@ -172,6 +181,7 @@ export const createProduct = async (
       category_id: category,
       price,
       description,
+      variation,
       variants: variants || [],
       images: images || [],
       stock:
@@ -215,6 +225,7 @@ export const updateProduct = async (
       category,
       price,
       description,
+      variation,
       variants,
       images,
       featured,
@@ -242,6 +253,7 @@ export const updateProduct = async (
         category_id: category,
         price,
         description,
+        variation,
         variants,
         images,
         featured,

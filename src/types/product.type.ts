@@ -3,6 +3,7 @@ export interface IProductVariant {
   color?: string;
   material?: string;
   size?: string;
+  attribute?: string; // Dynamic attribute value for the product's variation type
   price: number;
   stock: number;
   sku: string;
@@ -22,6 +23,7 @@ export interface IProduct {
   category_id: string;
   price: number;
   description?: string;
+  variation?: string; // Type of variation (e.g., Size, Dimensions, Color)
   variants: IProductVariant[];
   images: IProductImage[];
   featured?: boolean;
@@ -56,3 +58,14 @@ export interface IProductFilterQuery {
     sku?: { $regex: string; $options: string };
   }>;
 }
+
+// Variation type constants
+export const VARIATION_TYPES = [
+  "Size",
+  "Dimensions",
+  "Weight",
+  "Color",
+  "Material",
+  "Style",
+] as const;
+export type VariationType = (typeof VARIATION_TYPES)[number];
