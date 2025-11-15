@@ -27,7 +27,7 @@ export enum OrderStatus {
   SHIPPED = "shipped",
   DELIVERED = "delivered",
   CANCELLED = "cancelled",
-  REFUNDED = "refunded"
+  REFUNDED = "refunded",
 }
 
 export interface IOrder {
@@ -47,6 +47,9 @@ export interface IOrder {
   subtotal: number;
   delivery_cost: number;
   total: number;
+  stripe_payment_intent_id?: string;
+  stripe_charge_id?: string;
+  payment_confirmed_at?: Date;
   created_at?: Date;
   updated_at?: Date;
 }
