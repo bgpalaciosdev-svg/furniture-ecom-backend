@@ -34,10 +34,31 @@ export const getProducts = async (
         .split(",")
         .map((cat) => cat.trim())
         .filter(Boolean);
-      if (categories.length === 1) {
-        filterQuery.category_id = categories[0];
-      } else if (categories.length > 1) {
-        filterQuery.category_id = { $in: categories };
+
+      // Check if categories are slugs or IDs
+      // MongoDB ObjectIds are 24 hex characters
+      const isObjectId = (str: string) => /^[0-9a-fA-F]{24}$/.test(str);
+      const areIds = categories.every(isObjectId);
+
+      if (!areIds) {
+        // Categories are slugs, need to look up IDs
+        const categoryDocs = await Category.find({ slug: { $in: categories } });
+        const categoryIds = categoryDocs
+          .map((cat) => cat._id?.toString())
+          .filter(Boolean);
+
+        if (categoryIds.length === 1) {
+          filterQuery.category_id = categoryIds[0];
+        } else if (categoryIds.length > 1) {
+          filterQuery.category_id = { $in: categoryIds };
+        }
+      } else {
+        // Categories are IDs, use them directly
+        if (categories.length === 1) {
+          filterQuery.category_id = categories[0];
+        } else if (categories.length > 1) {
+          filterQuery.category_id = { $in: categories };
+        }
       }
     }
 
@@ -153,8 +174,17 @@ export const createProduct = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { name, sku, category, price, description, variants, images, stock } =
-      req.body;
+    const {
+      name,
+      sku,
+      category,
+      price,
+      description,
+      variation,
+      variants,
+      images,
+      stock,
+    } = req.body;
 
     // Check if SKU already exists
     const existingProduct = await Product.findOne({ sku: sku });
@@ -172,6 +202,7 @@ export const createProduct = async (
       category_id: category,
       price,
       description,
+      variation,
       variants: variants || [],
       images: images || [],
       stock:
@@ -215,6 +246,7 @@ export const updateProduct = async (
       category,
       price,
       description,
+      variation,
       variants,
       images,
       featured,
@@ -242,6 +274,7 @@ export const updateProduct = async (
         category_id: category,
         price,
         description,
+        variation,
         variants,
         images,
         featured,
@@ -328,10 +361,31 @@ export const searchProducts = async (
         .split(",")
         .map((cat) => cat.trim())
         .filter(Boolean);
-      if (categories.length === 1) {
-        searchQuery.category_id = categories[0];
-      } else if (categories.length > 1) {
-        searchQuery.category_id = { $in: categories };
+
+      // Check if categories are slugs or IDs
+      // MongoDB ObjectIds are 24 hex characters
+      const isObjectId = (str: string) => /^[0-9a-fA-F]{24}$/.test(str);
+      const areIds = categories.every(isObjectId);
+
+      if (!areIds) {
+        // Categories are slugs, need to look up IDs
+        const categoryDocs = await Category.find({ slug: { $in: categories } });
+        const categoryIds = categoryDocs
+          .map((cat) => cat._id?.toString())
+          .filter(Boolean);
+
+        if (categoryIds.length === 1) {
+          searchQuery.category_id = categoryIds[0];
+        } else if (categoryIds.length > 1) {
+          searchQuery.category_id = { $in: categoryIds };
+        }
+      } else {
+        // Categories are IDs, use them directly
+        if (categories.length === 1) {
+          searchQuery.category_id = categories[0];
+        } else if (categories.length > 1) {
+          searchQuery.category_id = { $in: categories };
+        }
       }
     }
 
