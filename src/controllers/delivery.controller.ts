@@ -43,6 +43,20 @@ export const validateAddress = async (
       country: address?.country || "United States",
     };
 
+    // Skip validation if DEBUG mode is enabled
+    const isDebugMode = process.env.DEBUG === 'true';
+    if (isDebugMode) {
+      console.log(`🐛 DEBUG MODE: Skipping address validation`);
+      res.status(200).json({
+        address: normalizedAddress,
+        is_valid: true,
+        is_in_zone: true,
+        distance_miles: 0,
+        message: "DEBUG MODE: Validation bypassed",
+      } as ValidateAddressResponse);
+      return;
+    }
+
     // Check if required fields are present
     if (!normalizedAddress.street || !normalizedAddress.city || !normalizedAddress.state || !normalizedAddress.zip_code) {
       console.log(`❌ Address validation failed: Missing required fields`);
@@ -149,6 +163,33 @@ export const calculateDeliveryCost = async (
         error: DeliveryErrorCode.INVALID_ADDRESS,
         message: "Invalid address format. All fields are required.",
       });
+      return;
+    }
+
+    // Skip LA validation if DEBUG mode is enabled
+    const isDebugMode = process.env.DEBUG === 'true';
+    if (isDebugMode) {
+      console.log(`🐛 DEBUG MODE: Skipping LA address validation, using default distance`);
+      const debugDistance = 5; // Default to near range for debug mode
+      let delivery_cost = NEAR_RANGE_COST;
+      let is_free = false;
+      let reason = "DEBUG MODE: Using default near range pricing";
+      
+      if (order_total >= FREE_DELIVERY_THRESHOLD && debugDistance < FREE_DELIVERY_DISTANCE) {
+        is_free = true;
+        delivery_cost = 0;
+        reason = `DEBUG MODE: Free delivery (order >= $${FREE_DELIVERY_THRESHOLD})`;
+      }
+      
+      res.status(200).json({
+        address: normalizedAddress,
+        order_total: order_total,
+        distance_miles: debugDistance,
+        delivery_cost: delivery_cost,
+        is_free: is_free,
+        reason: reason,
+        tier: "DEBUG: 0-5 miles",
+      } as CalculateDeliveryCostResponse);
       return;
     }
 
