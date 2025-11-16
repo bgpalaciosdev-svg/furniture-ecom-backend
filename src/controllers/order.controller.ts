@@ -16,7 +16,7 @@ export const getOrders = async (
       status,
       customer,
       date_from,
-      date_to
+      date_to,
     } = req.query;
 
     const pageNumber = parseInt(page as string);
@@ -24,22 +24,30 @@ export const getOrders = async (
     const skip = (pageNumber - 1) * limitNumber;
 
     // Build filter query
-    let filterQuery: any = {};
+    interface OrderFilterQuery {
+      status?: string;
+      $or?: Array<{ [key: string]: { $regex: string; $options: string } }>;
+      created_at?: { $gte?: Date; $lte?: Date };
+    }
+
+    const filterQuery: OrderFilterQuery = {};
 
     if (status) {
-      filterQuery.status = status;
+      filterQuery.status = status as string;
     }
 
     if (customer) {
+      const customerStr = customer as string;
       filterQuery.$or = [
-        { customer_email: { $regex: customer, $options: 'i' } },
-        { customer_phone: { $regex: customer, $options: 'i' } }
+        { customer_email: { $regex: customerStr, $options: "i" } },
+        { customer_phone: { $regex: customerStr, $options: "i" } },
       ];
     }
 
     if (date_from || date_to) {
       filterQuery.created_at = {};
-      if (date_from) filterQuery.created_at.$gte = new Date(date_from as string);
+      if (date_from)
+        filterQuery.created_at.$gte = new Date(date_from as string);
       if (date_to) filterQuery.created_at.$lte = new Date(date_to as string);
     }
 
@@ -47,9 +55,9 @@ export const getOrders = async (
       Order.find(filterQuery)
         .skip(skip)
         .limit(limitNumber)
-        .populate('customer_id')
+        .populate("customer_id")
         .sort({ created_at: -1 }),
-      Order.countDocuments(filterQuery)
+      Order.countDocuments(filterQuery),
     ]);
 
     const totalPages = Math.ceil(totalCount / limitNumber);
@@ -61,8 +69,8 @@ export const getOrders = async (
         total_pages: totalPages,
         total_count: totalCount,
         has_next: pageNumber < totalPages,
-        has_prev: pageNumber > 1
-      }
+        has_prev: pageNumber > 1,
+      },
     });
   } catch (error) {
     next(error);
@@ -79,8 +87,8 @@ export const getOrder = async (
     const { id } = req.params;
 
     const order = await Order.findById(id)
-      .populate('customer_id')
-      .populate('items.product_id');
+      .populate("customer_id")
+      .populate("items.product_id");
 
     if (!order) {
       res.status(404).json({ message: "Order not found" });
@@ -92,8 +100,8 @@ export const getOrder = async (
         ...order.toObject(),
         customer: order.customer_id,
         shipping: order.shipping_address,
-        billing: order.billing_address
-      }
+        billing: order.billing_address,
+      },
     });
   } catch (error) {
     next(error);
@@ -114,17 +122,31 @@ export const createOrder = async (
       payment_method,
       customer_id,
       customer_email,
-      customer_phone
+      customer_phone,
+      delivery_cost,
+      distance_miles,
+      delivery_zone_validated,
     } = req.body;
 
-    // Calculate totals
+    // Validate delivery_cost is provided
+    if (delivery_cost === undefined || delivery_cost === null) {
+      res.status(400).json({
+        message:
+          "Delivery cost is required. Please validate your delivery address.",
+      });
+      return;
+    }
+
+    // Calculate subtotal from items
     let subtotal = 0;
     const orderItems = [];
 
     for (const item of items) {
       const product = await Product.findById(item.product_id);
       if (!product) {
-        res.status(400).json({ message: `Product not found: ${item.product_id}` });
+        res
+          .status(400)
+          .json({ message: `Product not found: ${item.product_id}` });
         return;
       }
 
@@ -136,11 +158,12 @@ export const createOrder = async (
         variant_id: item.variant_id,
         quantity: item.quantity,
         price: item.price,
-        name: product.name
+        name: product.name,
       });
     }
 
-    const delivery_cost = subtotal > 500 ? 0 : 50; // Free delivery over $500
+    // Use delivery_cost from frontend (distance-based calculation)
+    // Total = subtotal + delivery_cost (no tax in backend)
     const total = subtotal + delivery_cost;
 
     const order = new Order({
@@ -151,20 +174,24 @@ export const createOrder = async (
       shipping_address,
       billing_address,
       payment_method,
-      payment_status: 'pending',
+      payment_status: "pending",
       status: OrderStatus.PENDING,
-      timeline: [{
-        status: OrderStatus.PENDING,
-        timestamp: new Date(),
-        notes: 'Order created'
-      }],
+      timeline: [
+        {
+          status: OrderStatus.PENDING,
+          timestamp: new Date(),
+          notes: "Order created",
+        },
+      ],
       subtotal,
       delivery_cost,
-      total
+      distance_miles,
+      delivery_zone_validated,
+      total,
     });
 
     await order.save();
-    await order.populate(['customer_id', 'items.product_id']);
+    await order.populate(["customer_id", "items.product_id"]);
 
     res.status(201).json(order);
   } catch (error) {
@@ -193,7 +220,7 @@ export const updateOrderStatus = async (
     order.timeline.push({
       status,
       timestamp: new Date(),
-      notes
+      notes,
     });
 
     order.status = status;
@@ -208,7 +235,7 @@ export const updateOrderStatus = async (
 
     res.status(200).json({
       status: order.status,
-      notes
+      notes,
     });
   } catch (error) {
     next(error);
@@ -236,11 +263,10 @@ export const trackOrder = async (
         status: order.status,
         timeline: order.timeline,
         tracking_number: order.tracking_number,
-        estimated_delivery: order.estimated_delivery
-      }
+        estimated_delivery: order.estimated_delivery,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
-

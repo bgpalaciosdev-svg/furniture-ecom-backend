@@ -27,7 +27,7 @@ export enum OrderStatus {
   SHIPPED = "shipped",
   DELIVERED = "delivered",
   CANCELLED = "cancelled",
-  REFUNDED = "refunded"
+  REFUNDED = "refunded",
 }
 
 export interface IOrder {
@@ -46,6 +46,8 @@ export interface IOrder {
   estimated_delivery?: Date;
   subtotal: number;
   delivery_cost: number;
+  distance_miles?: number;
+  delivery_zone_validated?: boolean;
   total: number;
   created_at?: Date;
   updated_at?: Date;
