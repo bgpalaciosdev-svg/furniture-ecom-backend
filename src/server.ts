@@ -31,41 +31,49 @@ const DEV_FRONTEND_URL = "http://localhost:3000";
 const DEV_ADMIN_URL = "http://localhost:3001";
 
 // Production URLs (update these with your actual production domains)
-const PROD_FRONTEND_URL = process.env.FRONTEND_URL || "https://staging-release--splendorous-centaur-b5e5f1.netlify.app";
-const PROD_ADMIN_URL = process.env.ADMIN_URL || "https://staging-release--splendorous-centaur-b5e5f1.netlify.app";
+const PROD_FRONTEND_URL =
+  process.env.FRONTEND_URL ||
+  "https://staging-release--splendorous-centaur-b5e5f1.netlify.app";
+const PROD_ADMIN_URL =
+  process.env.ADMIN_URL ||
+  "https://staging-release--splendorous-centaur-b5e5f1.netlify.app";
 
 // Netlify site configuration
 const NETLIFY_SITE_ID = "splendorous-centaur-b5e5f1";
 
 // Determine allowed origins based on environment
-const allowedOrigins = process.env.NODE_ENV === "production" 
-  ? [
-      PROD_FRONTEND_URL, 
-      PROD_ADMIN_URL,
-      // Allow all branch deployments from Netlify site
-      new RegExp(`^https://.*--${NETLIFY_SITE_ID}\\.netlify\\.app$`),
-      // Allow main Netlify domain
-      `https://${NETLIFY_SITE_ID}.netlify.app`,
-      // Add custom domain if you have one
-      process.env.CUSTOM_DOMAIN
-    ].filter(Boolean) // Remove undefined values
-  : [DEV_FRONTEND_URL, DEV_ADMIN_URL, "http://localhost:3002"];
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [
+        PROD_FRONTEND_URL,
+        PROD_ADMIN_URL,
+        // Allow all branch deployments from Netlify site
+        new RegExp(`^https://.*--${NETLIFY_SITE_ID}\\.netlify\\.app$`),
+        // Allow main Netlify domain
+        `https://${NETLIFY_SITE_ID}.netlify.app`,
+        // Add custom domain if you have one
+        process.env.CUSTOM_DOMAIN,
+      ].filter(Boolean) // Remove undefined values
+    : [DEV_FRONTEND_URL, DEV_ADMIN_URL, "http://localhost:3002"];
 
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+  origin: function (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) {
     // Allow requests with no origin (like mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin matches any allowed origins (including regex patterns)
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
+    const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      if (typeof allowedOrigin === "string") {
         return allowedOrigin === origin;
       } else if (allowedOrigin instanceof RegExp) {
         return allowedOrigin.test(origin);
       }
       return false;
     });
-    
+
     if (isAllowed || process.env.NODE_ENV === "development") {
       console.log(`✅ CORS allowed origin: ${origin}`);
       callback(null, true);
@@ -77,12 +85,12 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Origin",
-    "X-Requested-With", 
-    "Content-Type", 
-    "Accept", 
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
     "Authorization",
     "token",
-    "x-access-token"
+    "x-access-token",
   ],
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
@@ -91,23 +99,26 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    origin: function (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) {
       if (!origin) return callback(null, true);
-      
-      const isAllowed = allowedOrigins.some(allowedOrigin => {
-        if (typeof allowedOrigin === 'string') {
+
+      const isAllowed = allowedOrigins.some((allowedOrigin) => {
+        if (typeof allowedOrigin === "string") {
           return allowedOrigin === origin;
         } else if (allowedOrigin instanceof RegExp) {
           return allowedOrigin.test(origin);
         }
         return false;
       });
-      
+
       if (isAllowed || process.env.NODE_ENV === "development") {
         callback(null, true);
       } else {
@@ -162,7 +173,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/delivery", deliveryRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/test", testRoutes);
@@ -192,10 +203,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 server.listen(port, async () => {
   console.warn(`Server running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('🌐 Allowed CORS Origins:');
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log("🌐 Allowed CORS Origins:");
   allowedOrigins.forEach((origin, index) => {
-    if (typeof origin === 'string') {
+    if (typeof origin === "string") {
       console.log(`  ${index + 1}. ${origin}`);
     } else if (origin instanceof RegExp) {
       console.log(`  ${index + 1}. ${origin.toString()} (regex pattern)`);
