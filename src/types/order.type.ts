@@ -46,6 +46,8 @@ export interface IOrder {
   estimated_delivery?: Date;
   subtotal: number;
   delivery_cost: number;
+  distance_miles?: number;
+  delivery_zone_validated?: boolean;
   total: number;
   stripe_payment_intent_id?: string;
   stripe_charge_id?: string;

@@ -125,6 +125,15 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
       default: 0,
     },
+    distance_miles: {
+      type: Number,
+      required: false,
+    },
+    delivery_zone_validated: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     total: {
       type: Number,
       required: true,
