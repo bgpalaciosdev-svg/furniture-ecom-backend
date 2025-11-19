@@ -48,6 +48,7 @@ export interface IOrder {
   delivery_cost: number;
   distance_miles?: number;
   delivery_zone_validated?: boolean;
+  tax?: number;
   total: number;
   created_at?: Date;
   updated_at?: Date;
