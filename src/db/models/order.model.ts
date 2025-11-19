@@ -15,6 +15,23 @@ const OrderItemSchema = new Schema({
     type: String,
     required: false,
   },
+  // Variant snapshot fields for historical accuracy
+  variant_image: {
+    type: String,
+    required: false,
+  },
+  variant_sku: {
+    type: String,
+    required: false,
+  },
+  variant_attribute: {
+    type: String,
+    required: false,
+  },
+  variation_type: {
+    type: String,
+    required: false,
+  },
   quantity: {
     type: Number,
     required: true,

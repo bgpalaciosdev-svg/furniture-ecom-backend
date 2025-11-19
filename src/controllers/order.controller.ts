@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Order from "../db/models/order.model";
 import Product from "../db/models/product.model";
 import { OrderStatus } from "../types/order.type";
+import { IProductVariant } from "../types/product.type";
 
 // Get all orders with filtering and pagination
 export const getOrders = async (
@@ -154,9 +155,25 @@ export const createOrder = async (
       const itemTotal = item.quantity * item.price;
       subtotal += itemTotal;
 
+      // Find variant SKU if variant_id is provided
+      let variantSku = item.variant_sku;
+      if (item.variant_id && !variantSku && product.variants) {
+        const variant = product.variants.find(
+          (v: IProductVariant) => String(v._id) === String(item.variant_id),
+        );
+        if (variant) {
+          variantSku = variant.sku;
+        }
+      }
+
       orderItems.push({
         product_id: item.product_id,
         variant_id: item.variant_id,
+        // Variant snapshot fields for historical accuracy
+        variant_image: item.variant_image,
+        variant_sku: variantSku,
+        variant_attribute: item.variant_attribute,
+        variation_type: product.variation, // Get variation type from product (e.g., "Size", "Color")
         quantity: item.quantity,
         price: item.price,
         name: product.name,

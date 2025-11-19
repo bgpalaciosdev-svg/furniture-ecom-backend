@@ -1,6 +1,11 @@
 export interface IOrderItem {
   product_id: string;
   variant_id?: string;
+  // Variant snapshot fields for historical accuracy
+  variant_image?: string;
+  variant_sku?: string;
+  variant_attribute?: string;
+  variation_type?: string;
   quantity: number;
   price: number;
   name: string;
