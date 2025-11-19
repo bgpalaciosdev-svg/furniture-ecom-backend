@@ -134,6 +134,11 @@ const OrderSchema = new Schema<IOrder>(
       required: false,
       default: false,
     },
+    tax: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     total: {
       type: Number,
       required: true,

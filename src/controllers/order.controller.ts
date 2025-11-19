@@ -126,6 +126,7 @@ export const createOrder = async (
       delivery_cost,
       distance_miles,
       delivery_zone_validated,
+      tax,
     } = req.body;
 
     // Validate delivery_cost is provided
@@ -163,8 +164,9 @@ export const createOrder = async (
     }
 
     // Use delivery_cost from frontend (distance-based calculation)
-    // Total = subtotal + delivery_cost (no tax in backend)
-    const total = subtotal + delivery_cost;
+    // Tax is calculated and sent from frontend, backend just stores it
+    // Total = subtotal + delivery_cost + tax
+    const total = subtotal + delivery_cost + (tax || 0);
 
     const order = new Order({
       customer_id,
@@ -187,6 +189,7 @@ export const createOrder = async (
       delivery_cost,
       distance_miles,
       delivery_zone_validated,
+      tax,
       total,
     });
 
