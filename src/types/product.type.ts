@@ -8,6 +8,7 @@ export interface IProductVariant {
   stock: number;
   sku: string;
   images?: IProductImage[];
+  otherDetails?: Record<string, unknown>; // Flexible key-value pairs for additional details
 }
 
 export interface IProductImage {

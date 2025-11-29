@@ -56,6 +56,11 @@ const ProductVariantSchema = new Schema({
     required: false,
     default: [],
   },
+  otherDetails: {
+    type: Object,
+    required: false,
+    default: {},
+  },
 });
 
 const ProductSchema = new Schema<IProduct>(
