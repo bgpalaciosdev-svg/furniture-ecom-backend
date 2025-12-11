@@ -42,6 +42,8 @@ export const getOrders = async (
       filterQuery.$or = [
         { customer_email: { $regex: customerStr, $options: "i" } },
         { customer_phone: { $regex: customerStr, $options: "i" } },
+        { customer_first_name: { $regex: customerStr, $options: "i" } },
+        { customer_last_name: { $regex: customerStr, $options: "i" } },
       ];
     }
 
@@ -124,6 +126,8 @@ export const createOrder = async (
       customer_id,
       customer_email,
       customer_phone,
+      customer_first_name,
+      customer_last_name,
       delivery_cost,
       distance_miles,
       delivery_zone_validated,
@@ -189,6 +193,8 @@ export const createOrder = async (
       customer_id,
       customer_email,
       customer_phone,
+      customer_first_name,
+      customer_last_name,
       items: orderItems,
       shipping_address,
       billing_address,

@@ -101,6 +101,14 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       required: false,
     },
+    customer_first_name: {
+      type: String,
+      required: false,
+    },
+    customer_last_name: {
+      type: String,
+      required: false,
+    },
     items: [OrderItemSchema],
     shipping_address: {
       type: AddressSchema,

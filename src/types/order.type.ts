@@ -40,6 +40,8 @@ export interface IOrder {
   customer_id?: string;
   customer_email?: string;
   customer_phone?: string;
+  customer_first_name?: string;
+  customer_last_name?: string;
   items: IOrderItem[];
   shipping_address: IAddress;
   billing_address: IAddress;
