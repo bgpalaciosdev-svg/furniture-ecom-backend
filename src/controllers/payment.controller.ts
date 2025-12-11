@@ -59,6 +59,28 @@ export const confirmPayment = async (
   try {
     const { payment_intent_id, order_data } = req.body;
 
+    //If payment intent Id includes "financing" in its string, create the order with the financing id
+    // No need to check for stripe payment intents
+    if (payment_intent_id.includes("financing")) {
+      const order = new Order({
+        ...order_data,
+        payment_method: "Stripe",
+        payment_status: "completed",
+        stripe_payment_intent_id: payment_intent_id,
+        stripe_charge_id: undefined,
+        payment_confirmed_at: new Date(),
+      });
+
+      await order.save();
+      await order.populate(["customer_id", "items.product_id"]);
+
+      res.status(200).json({
+        success: true,
+        order_id: order._id,
+        payment_status: "succeeded",
+        stripe_payment_intent_id: payment_intent_id,
+      });
+    }
     if (!payment_intent_id) {
       res.status(400).json({ message: "Payment intent ID is required" });
       return;
