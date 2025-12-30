@@ -16,11 +16,13 @@ import paymentRoutes from "./routes/payment.router";
 import adminRoutes from "./routes/admin.router";
 import uploadRoutes from "./routes/upload.router";
 import testRoutes from "./routes/test.router";
+import recommendationRoutes from "./routes/recommendation.router";
 
 import { errorHandler } from "./middleware/erroHandler";
 import cors from "cors";
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "./services/jwt.service";
+import { recommendationScheduler } from "./controllers/scheduler.controller";
 
 dotenv.config();
 const app = express();
@@ -177,6 +179,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/test", testRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 app.get("/test-error", (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -212,4 +215,17 @@ server.listen(port, async () => {
       console.log(`  ${index + 1}. ${origin.toString()} (regex pattern)`);
     }
   });
+
+  // Initialize the recommendation scheduler
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.ENABLE_SCHEDULER === "true"
+  ) {
+    console.log("🤖 Starting AI recommendation scheduler...");
+    recommendationScheduler.start();
+  } else {
+    console.log(
+      "🤖 AI recommendation scheduler disabled (set ENABLE_SCHEDULER=true to enable in development)",
+    );
+  }
 });
