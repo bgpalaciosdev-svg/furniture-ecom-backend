@@ -17,6 +17,7 @@ import adminRoutes from "./routes/admin.router";
 import uploadRoutes from "./routes/upload.router";
 import testRoutes from "./routes/test.router";
 import recommendationRoutes from "./routes/recommendation.router";
+import contactRoutes from "./routes/contact.router";
 
 import { errorHandler } from "./middleware/erroHandler";
 import cors from "cors";
@@ -180,6 +181,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.get("/test-error", (req: Request, res: Response, next: NextFunction) => {
   try {

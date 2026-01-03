@@ -65,8 +65,16 @@ export const getOrders = async (
 
     const totalPages = Math.ceil(totalCount / limitNumber);
 
+    // Map orders to ensure payment intent ID is explicitly included
+    const ordersWithPaymentIntent = orders.map((order) => {
+      const orderObj = order.toObject();
+      return {
+        ...orderObj,
+        stripe_payment_intent_id: order.stripe_payment_intent_id,
+      };
+    });
     res.status(200).json({
-      orders,
+      orders: ordersWithPaymentIntent,
       pagination: {
         current_page: pageNumber,
         total_pages: totalPages,
